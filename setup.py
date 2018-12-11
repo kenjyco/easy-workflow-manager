@@ -1,10 +1,14 @@
 from setuptools import setup, find_packages
 
 
+with open('README.rst', 'r') as fp:
+    long_description = fp.read()
+
 setup(
     name='easy-workflow-manager',
     version='0.0.1',
     description='Tools to support a straightforward branch/qa/merge/release process',
+    long_description=long_description,
     author='Ken',
     author_email='kenjyco@gmail.com',
     license='MIT',
