@@ -115,7 +115,7 @@ def get_local_branches():
 
 
 def get_merged_remote_branches():
-    """Return a list of branches on origing that have been merged into SOURCE_BRANCH"""
+    """Return a list of branches on origin that have been merged into SOURCE_BRANCH"""
     bh.run('git fetch --all --prune &>/dev/null')
     cmd = 'git branch -r --merged origin/{} | grep -v origin/{} | cut -c 10-'.format(
         SOURCE_BRANCH, SOURCE_BRANCH
