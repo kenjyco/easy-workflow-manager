@@ -95,10 +95,13 @@ def get_qa_env_branches(qa='', display=False):
     return results
 
 
-def get_all_qa_env_branches():
-    """Return a dict with all qa environments and their env branches"""
+def get_all_qa_env_branches(display=False):
+    """Return a dict with all qa environments and their env branches
+
+    - display: if True, print the info to the screen
+    """
     data = {
-        branch: get_qa_env_branches(branch)
+        branch: get_qa_env_branches(branch, display=display)
         for branch in QA_BRANCHES
     }
     return data
