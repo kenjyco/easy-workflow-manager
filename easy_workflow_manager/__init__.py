@@ -388,6 +388,19 @@ def merge_qa_to_source(qa=''):
     return delete_branches(*delete_after_merge)
 
 
+def show_qa(qa=''):
+    """Show what is on a specific QA branch
+
+    - qa: name of qa branch that may have things pushed to it
+    """
+    get_qa_env_branches(qa, display=True)
+
+
+def show_all_qa():
+    """Show what is on all the QA branches"""
+    get_all_qa_env_branches(display=True)
+
+
 
 def tag_release():
     """Select a recent remote commit on SOURCE_BRANCH to tag
