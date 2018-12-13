@@ -331,6 +331,21 @@ def deploy_to_qa(qa='', grep=''):
         return force_push_local(qa, *branch_names)
 
 
+def delete_branches(*branches):
+    """Delete the specified remote branches
+
+    Return True if all deletes were successful
+    """
+    ret_codes = []
+    for branch in sorted(set(branches)):
+        cmd = 'git push origin -d {}'.format(branch)
+        print('\n$ {}'.format(cmd))
+        ret_codes.append(bh.run(cmd))
+
+    if all([x == 0 for x in ret_codes]):
+        return True
+
+
 def merge_qa_to_source(qa=''):
     """Merge the QA-verified code to SOURCE_BRANCH and delete merged branch(es)
 
@@ -370,14 +385,8 @@ def merge_qa_to_source(qa=''):
         return
 
     delete_after_merge.extend(get_merged_remote_branches())
-    ret_codes = []
-    for branch in delete_after_merge:
-        cmd = 'git push origin -d {}'.format(branch)
-        print('\n$ {}'.format(cmd))
-        ret_codes.append(bh.run(cmd))
+    return delete_branches(*delete_after_merge)
 
-    if all([x == 0 for x in ret_codes]):
-        return True
 
 
 def tag_release():
