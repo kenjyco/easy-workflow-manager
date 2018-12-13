@@ -409,6 +409,58 @@ def show_all_qa():
     get_all_qa_env_branches(display=True)
 
 
+def clear_qa(qa=''):
+    """Clear whatever is on a specific QA branch
+
+    - qa: name of qa branch that may have things pushed to it
+
+    Return True if deleting branch(es) was successful
+    """
+    if qa not in QA_BRANCHES:
+        show_all_qa()
+        print()
+        qa = select_qa()
+    if not qa:
+        return
+
+    branches = get_remote_branches(grep='^{}--'.format(qa), all_branches=True)
+    if not branches:
+        return
+    print('\n', branches, '\n')
+    resp = ih.user_input('Does this look correct? (y/n)')
+    if not resp.lower().startswith('y'):
+        print('\nNot going to do anything')
+        return
+
+    return delete_branches(*branches)
+
+
+def clear_all_qa():
+    """Clear whatver is on all the QA branches
+
+    Return True if deleting branch(es) was successful
+    """
+    env_branches = get_all_qa_env_branches(display=False)
+    if not env_branches:
+        return
+
+    branches = []
+    for branch_list in env_branches.values():
+        if not branch_list:
+            continue
+        for branch in branch_list:
+            branches.append(branch['branch'])
+    if not branches:
+        return
+    pprint(branches)
+    print()
+    resp = ih.user_input('Does this look correct? (y/n)')
+    if not resp.lower().startswith('y'):
+        print('\nNot going to do anything')
+        return
+
+    return delete_branches(*branches)
+
 
 def tag_release():
     """Select a recent remote commit on SOURCE_BRANCH to tag
