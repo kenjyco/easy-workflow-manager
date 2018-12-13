@@ -9,7 +9,7 @@ def main():
     """Select a recent remote commit on SOURCE_BRANCH to tag"""
     success = ewm.tag_release()
     if success:
-        print('Successfully tagged')
+        print('\nSuccessfully tagged')
 
 
 if __name__ == '__main__':
