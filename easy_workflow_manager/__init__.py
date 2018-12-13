@@ -314,9 +314,11 @@ def deploy_to_qa(qa='', grep=''):
     - qa: name of qa branch that will receive this deploy
     - grep: grep pattern to filter branches by (case-insensitive)
 
-    Return True if deploy was successful
+    Return qa name if deploy was successful
     """
     if qa not in QA_BRANCHES:
+        show_all_qa()
+        print()
         qa = select_qa()
     if not qa:
         return
@@ -328,7 +330,9 @@ def deploy_to_qa(qa='', grep=''):
     branch_names = [b['branch'] for b in branches]
     success = merge_branches_locally(*branch_names)
     if success:
-        return force_push_local(qa, *branch_names)
+        success2 = force_push_local(qa, *branch_names)
+        if success2:
+            return qa
 
 
 def delete_branches(*branches):
@@ -351,9 +355,11 @@ def merge_qa_to_source(qa=''):
 
     - qa: name of qa branch to merge to source
 
-    Return True if merge and delete was successful
+    Return qa name if merge(s) and delete(s) were successful
     """
     if qa not in QA_BRANCHES:
+        show_all_qa()
+        print()
         qa = select_qa()
     if not qa:
         return
@@ -385,7 +391,9 @@ def merge_qa_to_source(qa=''):
         return
 
     delete_after_merge.extend(get_merged_remote_branches())
-    return delete_branches(*delete_after_merge)
+    success = delete_branches(*delete_after_merge)
+    if success:
+        return qa
 
 
 def show_qa(qa=''):
