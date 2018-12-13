@@ -8,14 +8,9 @@ from pprint import pprint
 @click.argument('qa', nargs=1, default='')
 def main(qa):
     """Merge the QA-verified code to SOURCE_BRANCH and delete merged branch(es)"""
-    if qa not in ewm.QA_BRANCHES:
-        qa = ewm.select_qa()
-    if not qa:
-        return
-
-    success = ewm.merge_qa_to_source(qa)
-    if success:
-        print('Successfully merged {} to {} and deleted branches'.format(qa, ewm.SOURCE_BRANCH))
+    merged_from = ewm.merge_qa_to_source(qa)
+    if merged_from:
+        print('\nSuccessfully merged {} to {} and deleted branches'.format(merged_from, ewm.SOURCE_BRANCH))
 
 
 if __name__ == '__main__':
