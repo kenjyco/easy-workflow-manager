@@ -48,6 +48,26 @@ Options:
   --help  Show this message and exit.
 
 
+$ venv/bin/ewm-show-qa --help
+Usage: ewm-show-qa [OPTIONS] [QA]
+
+  Show what is in a specific (or all) qa branch(es)
+
+Options:
+  -a, --all  Select all qa environments
+  --help     Show this message and exit.
+
+
+$ venv/bin/ewm-clear-qa --help
+Usage: ewm-clear-qa [OPTIONS] [QA]
+
+  Clear whatever is in a specific (or all) qa branch(es)
+
+Options:
+  -a, --all  Select all qa environments
+  --help     Show this message and exit.
+
+
 $ venv/bin/ewm-tag-release --help
 Usage: ewm-tag-release [OPTIONS]
 

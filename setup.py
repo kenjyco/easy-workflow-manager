@@ -32,6 +32,8 @@ setup(
             'ewm-new-branch-from-source=easy_workflow_manager.scripts.new_branch_from_source:main',
             'ewm-deploy-to-qa=easy_workflow_manager.scripts.deploy_to_qa:main',
             'ewm-qa-to-source=easy_workflow_manager.scripts.qa_to_source:main',
+            'ewm-clear-qa=easy_workflow_manager.scripts.clear_qa:main',
+            'ewm-show-qa=easy_workflow_manager.scripts.show_qa:main',
             'ewm-tag-release=easy_workflow_manager.scripts.tag_release:main',
         ],
     },
