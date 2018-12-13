@@ -32,6 +32,8 @@ def get_remote_branches(grep='', all_branches=False):
     )
     output = bh.run_output(cmd)
     branches = []
+    if not output:
+        return branches
     for branch in re.split('\r?\n', output):
         if all_branches:
             branches.append(branch)
