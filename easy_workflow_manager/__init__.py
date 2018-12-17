@@ -160,13 +160,49 @@ def get_branch_name():
     return bh.run_output('git rev-parse --abbrev-ref HEAD')
 
 
-def select_qa():
-    """Select QA branch"""
+def select_qa(empty_only=False, full_only=False, multi=False):
+    """Select QA branch(es)
+
+    - empty_only: if True, only show empty qa environments in generated menu
+    - full_only: if True, only show non-empty qa environments in generated menu
+    - multi: if True, allow selecting multiple qa branches
+    """
+    assert not empty_only or not full_only, 'Cannot select both empty_only and full_only'
+    if empty_only:
+        items = sorted(list(get_empty_qa()))
+    elif full_only:
+        items = sorted(list(get_non_empty_qa()))
+    else:
+        items = sorted(QA_BRANCHES)
+    if len(items) == 1:
+        print('Selected: {}'.format(repr(items[0])))
+        return items[0]
+    elif len(items) == 0:
+        print('No items to select')
+        return
+    prompt = 'Select QA branch'
+    if multi:
+        prompt = 'Select QA branches'
+    selected = ih.make_selections(items, prompt=prompt)
+    if selected:
+        if not multi:
+            return selected[0]
+        return selected
+
+
+def select_qa_with_times(multi=False):
+    """Select QA branch(es)
+
+    - multi: if True, allow selecting multiple qa branches
+    """
     if len(QA_BRANCHES) == 1:
         return QA_BRANCHES[0]
-    selected = ih.make_selections(sorted(QA_BRANCHES), prompt='Select QA branch')
+    grep = '(' + '|'.join(['^{}$'.format(qa) for qa in QA_BRANCHES]) + ')'
+    selected = select_branches_with_times(grep=grep, all_branches=True)
     if selected:
-        return selected[0]
+        if not multi:
+            return selected[0]
+        return selected
 
 
 def select_branches(grep='', all_branches=False):
