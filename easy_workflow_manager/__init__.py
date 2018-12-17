@@ -1,4 +1,5 @@
 import re
+import inspect
 import settings_helper as sh
 import input_helper as ih
 import bg_helper as bh
@@ -16,6 +17,8 @@ QA_BRANCHES = [QA_BRANCHES] if type(QA_BRANCHES) == str else QA_BRANCHES
 IGNORE_BRANCHES = [IGNORE_BRANCHES] if type(IGNORE_BRANCHES) == str else IGNORE_BRANCHES
 RX_QA_PREFIX = re.compile('^(' + '|'.join(QA_BRANCHES) + ').*')
 NON_SELECTABLE_BRANCHES = set(QA_BRANCHES + IGNORE_BRANCHES)
+FUNCS_ALLOWED_TO_FORCE_PUSH = ('deploy_to_qa', 'merge_qa_to_source')
+FUNCS_ALLOWED_TO_FORCE_PUSH_TO_SOURCE = ('merge_qa_to_source', )
 
 
 def get_remote_branches(grep='', all_branches=False):
@@ -272,14 +275,33 @@ def merge_branches_locally(*branches, source=SOURCE_BRANCH):
     return True
 
 
-def force_push_local(qa, *branches):
-    """Da a git push -f of LOCAL_BRANCH to specified qa branch, if available
+def force_push_local(qa='', *branches, to_source=False):
+    """Da a git push -f of LOCAL_BRANCH to specified qa branch or SOURCE_BRANCH
 
     - qa: name of qa branch to push to
     - branches: list of remote branch names that were merged into LOCAL_BRANCH
+    - to_source: if True, force push to SOURCE_BRANCH (only allowed if func
+      that called it is in FUNCS_ALLOWED_TO_FORCE_PUSH_TO_SOURCE)
 
     Return True if push was successful
+
+    Only allowed to be called from funcs in FUNCS_ALLOWED_TO_FORCE_PUSH (because
+    these are functions that just finished creating a clean LOCAL_BRANCH from the
+    remote SOURCE_BRANCH, with other remote branches combined in (via rebase or
+    merge)
     """
+    caller = inspect.stack()[1][3]
+    assert caller in FUNCS_ALLOWED_TO_FORCE_PUSH, (
+        'Only allowed to invoke force_push_local func from {}... not {}'.format(
+            repr(FUNCS_ALLOWED_TO_FORCE_PUSH), repr(caller)
+        )
+    )
+    if to_source:
+        assert caller in FUNCS_ALLOWED_TO_FORCE_PUSH_TO_SOURCE, (
+            'Only allowed to force push to {} when invoked from {}... not {}'.format(
+                SOURCE_BRANCH, repr(FUNCS_ALLOWED_TO_FORCE_PUSH_TO_SOURCE), repr(caller)
+            )
+        )
     current_branch = get_branch_name()
     if current_branch != LOCAL_BRANCH:
         print('Will not do a force push with branch {}, only {}'.format(
