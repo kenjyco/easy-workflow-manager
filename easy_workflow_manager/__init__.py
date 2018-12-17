@@ -161,6 +161,78 @@ def get_branch_name():
     return bh.run_output('git rev-parse --abbrev-ref HEAD')
 
 
+def get_tracking_branch():
+    """Return remote tracking branch for current branch"""
+    branch = get_branch_name()
+    cmd = 'git branch -r | grep "/{}$" | grep -v HEAD'.format(branch)
+    return bh.run_output(cmd)
+
+
+def get_local_repo_path():
+    """Return path to local repository"""
+    return fh.repopath()
+
+
+def get_unpushed_commits():
+    """Return a list of any local commits that have not been pushed"""
+    cmd = 'git log --find-renames --no-merges --oneline @{u}.. 2>/dev/null'
+    output = bh.run_output(cmd)
+    commits = []
+    if output:
+        commits = re.split('\r?\n', output)
+    return commits
+
+
+def get_first_commit_id():
+    """Get the first commit id for the repo"""
+    return bh.run_output('git rev-list --max-parents=0 HEAD')
+
+
+def get_last_commit_id():
+    """Get the last commit id for the repo"""
+    return bh.run_output('git log --no-merges  --format="%h" -1')
+
+
+def get_commits_since_last_tag(until=''):
+    """Return a list of commits made since last_tag
+
+    - until: a recent commit id to stop at (instead of last commit)
+
+    If no tag has been made, returns a list of commits since the first commit
+    """
+    tag = get_last_tag()
+    commits = []
+    if not tag:
+        tag = get_first_commit_id()
+    if not until:
+        until = get_last_commit_id()
+    cmd = 'git log --find-renames --no-merges --oneline {}..{}'.format(tag, until)
+    output = bh.run_output(cmd)
+    if output:
+        commits = re.split('\r?\n', output)
+    return commits
+
+
+def get_stashlist():
+    """Return a list of any local stashes"""
+    cmd = 'git stash list'
+    output = bh.run_output(cmd)
+    stashes = []
+    if output:
+        stashes = re.split('\r?\n', output)
+    return stashes
+
+
+def get_status():
+    """Return a list of any modified or untracked files"""
+    cmd = 'git status -s'
+    output = bh.run_output(cmd)
+    results = []
+    if output:
+        results = re.split('\r?\n\s*', output)
+    return results
+
+
 def get_tags():
     """Return a list of all tags with most recent first"""
     cmd = 'git describe --tags $(git rev-list --tags) 2>/dev/null'
