@@ -135,6 +135,22 @@ def get_merged_remote_branches():
         SOURCE_BRANCH, SOURCE_BRANCH
     )
     output = bh.run_output(cmd)
+    branches = []
+    if not output:
+        return branches
+    branches = re.split('\r?\n', output)
+    return branches
+
+
+def get_merged_local_branches():
+    """Return a list of local branches that have been merged into SOURCE_BRANCH"""
+    cmd = 'git branch --merged {} | cut -c 3- | grep -v "^{}$"'.format(
+        SOURCE_BRANCH, SOURCE_BRANCH
+    )
+    output = bh.run_output(cmd)
+    branches = []
+    if not output:
+        return branches
     branches = re.split('\r?\n', output)
     return branches
 
