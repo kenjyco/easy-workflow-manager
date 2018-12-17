@@ -17,6 +17,7 @@ QA_BRANCHES = [QA_BRANCHES] if type(QA_BRANCHES) == str else QA_BRANCHES
 IGNORE_BRANCHES = [IGNORE_BRANCHES] if type(IGNORE_BRANCHES) == str else IGNORE_BRANCHES
 RX_QA_PREFIX = re.compile('^(' + '|'.join(QA_BRANCHES) + ').*')
 RX_NON_TAG = re.compile(r'.*-\d+-g[a-f0-9]+$')
+RX_CONFIG_URL = re.compile('^url\s*=\s*(\S+)$')
 NON_SELECTABLE_BRANCHES = set(QA_BRANCHES + IGNORE_BRANCHES)
 FUNCS_ALLOWED_TO_FORCE_PUSH = ('deploy_to_qa', 'merge_qa_to_source')
 FUNCS_ALLOWED_TO_FORCE_PUSH_TO_SOURCE = ('merge_qa_to_source', )
@@ -171,6 +172,20 @@ def get_tracking_branch():
 def get_local_repo_path():
     """Return path to local repository"""
     return fh.repopath()
+
+
+def get_origin_url():
+    """Return url to remote origin (from .git/config file)"""
+    local_path = get_local_repo_path()
+    if not local_path:
+        return
+    cmd = 'grep "remote \\"origin\\"" -A 2 {}/.git/config | grep url'.format(
+        local_path
+    )
+    output = bh.run_output(cmd)
+    match = RX_CONFIG_URL.match(output)
+    if match:
+        return match.group(1)
 
 
 def get_unpushed_commits():
