@@ -5,6 +5,7 @@ import input_helper as ih
 import fs_helper as fh
 import bg_helper as bh
 import dt_helper as dh
+from io import StringIO
 from pprint import pprint
 
 
@@ -279,6 +280,56 @@ def get_tag_message(tag=''):
             return
     output = bh.run_output('git tag -n99 {}'.format(tag))
     return output.replace(tag, '').strip()
+
+
+def get_repo_info_dict():
+    """Return a dict of info about the repo"""
+    data = {}
+    data['branch'] = get_branch_name()
+    data['branch_tracking'] = get_tracking_branch()
+    data['path'] = get_local_repo_path()
+    data['url'] = get_origin_url()
+    data['last_tag'] = get_last_tag()
+    data['unpushed'] = get_unpushed_commits()
+    data['commits_since_last_tag'] = get_commits_since_last_tag()
+    data['stashes'] = get_stashlist()
+    data['status'] = get_status()
+    return data
+
+
+def get_repo_info_string():
+    """Build up a string of info from get_repo_info_dict and return it"""
+    info = get_repo_info_dict()
+    s = StringIO()
+    s.write('{} .::. {} .::. {}'.format(
+        info['path'], info['url'], info['branch']
+    ))
+    if info['branch_tracking']:
+        s.write('\n- tracking: {}'.format(info['branch_tracking']))
+    if info['last_tag']:
+        s.write('\n- last tag: {}'.format(info['last_tag']))
+    if info['status']:
+        s.write('\n- status:')
+        for filestat in info['status']:
+            s.write('\n    - {}'.format(filestat))
+    if info['stashes']:
+        s.write('\n\n- stashes:')
+        for stash in info['stashes']:
+            s.write('\n    - {}'.format(stash))
+    if info['unpushed']:
+        s.write('\n\n- unpushed commits:')
+        for commit in info['unpushed']:
+            s.write('\n    - {}'.format(commit))
+    if info['commits_since_last_tag']:
+        s.write('\n\n- commits since last tag:')
+        for commit in info['commits_since_last_tag']:
+            s.write('\n    - {}'.format(commit))
+    return s.getvalue()
+
+
+def show_repo_info():
+    """Show info about the repo"""
+    print(get_repo_info_string())
 
 
 def select_qa(empty_only=False, full_only=False, multi=False):
