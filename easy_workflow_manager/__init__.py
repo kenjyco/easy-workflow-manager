@@ -107,6 +107,20 @@ def get_qa_env_branches(qa='', display=False, all_qa=False):
     return full_results
 
 
+def get_non_empty_qa():
+    """Return a set of all QA branches with something deployed"""
+    return set([
+        eb['branch'].split('--', 1)[0]
+        for eb in get_qa_env_branches()
+    ])
+
+
+def get_empty_qa():
+    """Return a set of all QA branches with nothing deployed"""
+    non_empty = get_non_empty_qa()
+    return set(QA_BRANCHES) - non_empty
+
+
 def get_local_branches():
     """Return list of local branch names (via git branch)"""
     output = bh.run_output('git branch | cut -c 3-')
