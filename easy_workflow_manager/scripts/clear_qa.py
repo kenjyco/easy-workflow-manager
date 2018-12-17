@@ -12,7 +12,7 @@ from pprint import pprint
 @click.argument('qa', nargs=1, default='')
 def main(qa, all_qa):
     """Clear whatever is in a specific (or all) qa branch(es)"""
-    success = ewm.clear_qa(qa=qa, all_qa=all_qa)
+    success = ewm.clear_qa(qa, all_qa=all_qa)
     if success:
         print('\nSuccessfully cleared qa branch(es)')
         ewm.show_qa(all_qa=True)
