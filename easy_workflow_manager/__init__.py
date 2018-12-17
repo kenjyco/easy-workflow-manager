@@ -402,9 +402,7 @@ def deploy_to_qa(qa='', grep=''):
     Return qa name if deploy was successful
     """
     if qa not in QA_BRANCHES:
-        show_all_qa()
-        print()
-        qa = select_qa()
+        qa = select_qa(empty_only=True)
     if not qa:
         return
 
@@ -445,7 +443,7 @@ def merge_qa_to_source(qa=''):
     if qa not in QA_BRANCHES:
         show_all_qa()
         print()
-        qa = select_qa()
+        qa = select_qa(full_only=True)
     if not qa:
         return
     env_branches = get_qa_env_branches(qa, display=True)
