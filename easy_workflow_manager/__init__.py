@@ -69,45 +69,42 @@ def get_remote_branches_with_times(grep='', all_branches=False):
     return results
 
 
-def get_qa_env_branches(qa='', display=False):
+def get_qa_env_branches(qa='', display=False, all_qa=False):
     """Return a list of dicts with info relating to what is on specified qa env
 
     - qa: name of qa branch that has things pushed to it
+        - if no name is passed in assume all_qa=True
     - display: if True, print the info to the screen
+    - all_qa: if True and no qa passed in, return info for all qa envs
     """
-    if qa not in QA_BRANCHES:
-        qa = select_qa()
-    if not qa:
-        return
+    if qa:
+        if qa not in QA_BRANCHES:
+            return
+        qa_branches = [qa]
+    else:
+        all_qa = True
+    if all_qa:
+        qa_branches = QA_BRANCHES
 
-    results = []
-    for branch in get_remote_branches_with_times(grep='^{}--'.format(qa), all_branches=True):
-        _qa, _, *env_branches = branch['branch'].split('--')
-        branch['contains'] = env_branches
-        results.append(branch)
+    full_results = []
+    for qa_name in qa_branches:
+        results = []
+        for branch in get_remote_branches_with_times(grep='^{}--'.format(qa_name), all_branches=True):
+            _qa, _, *env_branches = branch['branch'].split('--')
+            branch['contains'] = env_branches
+            results.append(branch)
 
-    if results and display:
-        print('\nEnvironment: {} ({})'.format(qa, results[0]['time']))
-        for branch in results[0]['contains']:
-            print('  - {}'.format(branch))
+        if results and display:
+            print('\nEnvironment: {} ({})'.format(qa_name, results[0]['time']))
+            for branch in results[0]['contains']:
+                print('  - {}'.format(branch))
 
-        if len(results) > 1:
-            print('  ----------   older   ----------')
-            for br in results[1:]:
-                print('  - {} ({})'.format(br['branch'], br['time']))
-    return results
-
-
-def get_all_qa_env_branches(display=False):
-    """Return a dict with all qa environments and their env branches
-
-    - display: if True, print the info to the screen
-    """
-    data = {
-        branch: get_qa_env_branches(branch, display=display)
-        for branch in QA_BRANCHES
-    }
-    return data
+            if len(results) > 1:
+                print('  ----------   older   ----------')
+                for br in results[1:]:
+                    print('  - {} ({})'.format(br['branch'], br['time']))
+        full_results.extend(results)
+    return full_results
 
 
 def get_local_branches():
