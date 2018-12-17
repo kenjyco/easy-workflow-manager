@@ -2,11 +2,13 @@ import re
 import inspect
 import settings_helper as sh
 import input_helper as ih
+import fs_helper as fh
 import bg_helper as bh
 import dt_helper as dh
 from pprint import pprint
 
 
+logger = fh.get_logger(__name__)
 get_setting = sh.settings_getter(__name__)
 QA_BRANCHES = get_setting('QA_BRANCHES')
 IGNORE_BRANCHES = get_setting('IGNORE_BRANCHES')

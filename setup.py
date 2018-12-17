@@ -20,6 +20,7 @@ setup(
         'settings-helper',
         'dt-helper',
         'bg-helper',
+        'fs-helper',
         'click>=6.0',
     ],
     include_package_data=True,
