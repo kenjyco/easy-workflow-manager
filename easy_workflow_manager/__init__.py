@@ -16,6 +16,7 @@ SOURCE_BRANCH = get_setting('SOURCE_BRANCH')
 QA_BRANCHES = [QA_BRANCHES] if type(QA_BRANCHES) == str else QA_BRANCHES
 IGNORE_BRANCHES = [IGNORE_BRANCHES] if type(IGNORE_BRANCHES) == str else IGNORE_BRANCHES
 RX_QA_PREFIX = re.compile('^(' + '|'.join(QA_BRANCHES) + ').*')
+RX_NON_TAG = re.compile(r'.*-\d+-g[a-f0-9]+$')
 NON_SELECTABLE_BRANCHES = set(QA_BRANCHES + IGNORE_BRANCHES)
 FUNCS_ALLOWED_TO_FORCE_PUSH = ('deploy_to_qa', 'merge_qa_to_source')
 FUNCS_ALLOWED_TO_FORCE_PUSH_TO_SOURCE = ('merge_qa_to_source', )
@@ -158,6 +159,37 @@ def get_merged_local_branches():
 def get_branch_name():
     """Return current branch name"""
     return bh.run_output('git rev-parse --abbrev-ref HEAD')
+
+
+def get_tags():
+    """Return a list of all tags with most recent first"""
+    cmd = 'git describe --tags $(git rev-list --tags) 2>/dev/null'
+    output = bh.run_output(cmd)
+    tags = []
+    if not output:
+        return tags
+    for tag in re.split('\r?\n', output):
+        if not RX_NON_TAG.match(tag):
+            tags.append(tag)
+    return tags
+
+
+def get_last_tag():
+    """Return the most recent tag made"""
+    return bh.run_output('git describe --tags $(git rev-list --tags --max-count=1 2>/dev/null) 2>/dev/null')
+
+
+def get_tag_message(tag=''):
+    """Return the message for the most recent tag made
+
+    - tag: name of a tag that was made
+    """
+    if not tag:
+        tag = get_last_tag()
+        if not tag:
+            return
+    output = bh.run_output('git tag -n99 {}'.format(tag))
+    return output.replace(tag, '').strip()
 
 
 def select_qa(empty_only=False, full_only=False, multi=False):
