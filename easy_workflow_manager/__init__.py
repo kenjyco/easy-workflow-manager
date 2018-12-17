@@ -405,6 +405,34 @@ def select_branches_with_times(grep='', all_branches=False):
     )
 
 
+def select_commit_to_tag(n=10):
+    """Select a commit hash from recent commits
+
+    - n: number of recent commits to choose from
+    """
+    branch = get_branch_name()
+    assert branch == SOURCE_BRANCH, (
+        'Must be on {} branch to select commit, not {}'.format(SOURCE_BRANCH, branch)
+    )
+    last_tag = get_last_tag()
+    cmd_part = 'git log --find-renames --no-merges --oneline'
+    if last_tag:
+        cmd = cmd_part + ' {}..'.format(last_tag)
+    else:
+        cmd = cmd_part + ' -{}'.format(n)
+    output = bh.run_output(cmd)
+    if not output:
+        return
+    items = re.split('\r?\n', output)[:n]
+    selected = ih.make_selections(
+        items,
+        wrap=False,
+        prompt='Select commit to tag'
+    )
+    if selected:
+        return selected[0].split(' ', 1)[0]
+
+
 def prompt_for_new_branch_name(name=''):
     """Prompt user for the name of a new allowed branch name
 
@@ -781,4 +809,35 @@ def tag_release():
 
     Return True if tag was successful
     """
-    return False
+    success = update_branch(SOURCE_BRANCH)
+    if not success:
+        return
+    print('\nRecent commits')
+    commit_id = select_commit_to_tag()
+    if not commit_id:
+        return
+    tag = dh.local_now_string('%Y-%m%d-%H%M%S')
+    commits = get_commits_since_last_tag(until=commit_id)
+    notes_file = '/tmp/{}.txt'.format(tag)
+    summary = ih.user_input('One-line summary for tag')
+    if not summary:
+        summary = tag
+    with open(notes_file, 'w') as fp:
+        fp.write('{}\n\n'.format(summary))
+        fp.write('\n'.join(commits) + '\n')
+    bh.run('vim {}'.format(notes_file))
+    cmd = 'git tag -a {} {} -F {}'.format(
+        tag, commit_id, repr(notes_file)
+    )
+    print('Tag command would be -> {}'.format(cmd))
+    resp = ih.user_input('Continue? (y/n)')
+    if not resp.lower().startswith('y'):
+        return
+
+    print('\n$ {}'.format(cmd))
+    ret_code = bh.run(cmd)
+    if ret_code != 0:
+        return
+
+    print('\n$ git push --tags')
+    return bh.run('git push --tags')
