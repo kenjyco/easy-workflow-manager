@@ -488,7 +488,7 @@ def merge_qa_to_source(qa=''):
     Return qa name if merge(s) and delete(s) were successful
     """
     if qa not in QA_BRANCHES:
-        show_all_qa()
+        show_qa(all_qa=True)
         print()
         qa = select_qa(full_only=True)
     if not qa:
@@ -521,7 +521,7 @@ def merge_qa_to_source(qa=''):
         return
 
     delete_after_merge.extend(get_merged_remote_branches())
-    success = delete_branches(*delete_after_merge)
+    success = delete_remote_branches(*delete_after_merge)
     if success:
         return qa
 
