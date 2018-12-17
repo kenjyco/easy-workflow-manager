@@ -450,7 +450,7 @@ def deploy_to_qa(qa='', grep=''):
             return qa
 
 
-def delete_branches(*branches):
+def delete_remote_branches(*branches):
     """Delete the specified remote branches
 
     Return True if all deletes were successful
@@ -458,6 +458,21 @@ def delete_branches(*branches):
     ret_codes = []
     for branch in sorted(set(branches)):
         cmd = 'git push origin -d {}'.format(branch)
+        print('\n$ {}'.format(cmd))
+        ret_codes.append(bh.run(cmd))
+
+    if all([x == 0 for x in ret_codes]):
+        return True
+
+
+def delete_local_branches(*branches):
+    """Delete the specified local branches
+
+    Return True if all deletes were successful
+    """
+    ret_codes = []
+    for branch in sorted(set(branches)):
+        cmd = 'git branch -D {}'.format(branch)
         print('\n$ {}'.format(cmd))
         ret_codes.append(bh.run(cmd))
 
