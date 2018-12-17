@@ -666,6 +666,52 @@ def merge_qa_to_source(qa=''):
         return qa
 
 
+def update_branch(branch='', pop_stash=False):
+    """Get latest changes from origin into branch
+
+    - branch: name of branch to update (if not current checked out)
+    - pop_stash: if True, do `git stash pop` at the end if a stash was made
+
+    Return True if update was successful
+    """
+    if branch:
+        if branch not in get_local_branches():
+            cmd = 'git checkout origin/{}'.format(branch)
+        else:
+            cmd = 'git checkout {}'.format(branch)
+        print('\n$ {}'.format(cmd))
+        bh.run_or_die(cmd)
+
+    branch = get_branch_name()
+    url = get_origin_url()
+    tracking = get_tracking_branch()
+    if not url:
+        print('\nLocal-only repo, not updating')
+        return
+    elif tracking:
+        print('\n$ git stash')
+        stash_output = bh.run_output('git stash')
+        print(stash_output)
+        print('\n$ git pull --rebase')
+        ret_code = bh.run('git pull --rebase')
+        if ret_code != 0:
+            return
+        if branch != SOURCE_BRANCH:
+            cmd = 'git rebase origin/{}'.format(SOURCE_BRANCH)
+            print('\n$ {}'.format(cmd))
+            ret_code = bh.run(cmd)
+            if ret_code != 0:
+                return
+        if pop_stash and stash_output != 'No local changes to save':
+            print('\n$ git stash pop')
+            bh.run_output('git stash pop')
+    else:
+        print('\n$ git fetch')
+        bh.run_output('git fetch')
+
+    return True
+
+
 def show_remote_branches(grep='', all_branches=False):
     """Show the remote branch names and last update times
 
