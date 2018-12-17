@@ -526,8 +526,19 @@ def merge_qa_to_source(qa=''):
         return qa
 
 
+def show_remote_branches(grep='', all_branches=False):
+    """Show the remote branch names and last update times
 
+    - grep: grep pattern to filter branches by (case-insensitive)
+    - all_branches: if True, don't filter out non-selectable branches or branches
+      prefixed by a qa branch
 
+    Results are ordered by most recent commit
+    """
+    branches = get_remote_branches_with_times(grep=grep, all_branches=all_branches)
+    if branches:
+        make_string = ih.get_string_maker(item_format='- {branch} .::. {time}')
+        print('\n'.join([make_string(branch) for branch in branches]))
 
 
 def show_qa(qa='', all_qa=False):
