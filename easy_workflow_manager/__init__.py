@@ -491,6 +491,23 @@ def new_branch(name, source=SOURCE_BRANCH):
         bh.run(cmd)
 
 
+def branch_from(name='', from_branch=''):
+    """Create a new branch from specified branch on origin
+
+    - name: name of new branch
+    - from_branch: remote branch name to make the new branch from
+    """
+    name = prompt_for_new_branch_name(name)
+    if name:
+        remote_branches = get_remote_branches(all_branches=True)
+        if not from_branch or from_branch not in remote_branches:
+            selected = select_branches_with_times(all_branches=True)
+            if selected:
+                from_branch = selected[0]['branch']
+            else:
+                from_branch = ''
+        if from_branch:
+            new_branch(name, from_branch)
 
 
 def get_clean_local_branch(source=SOURCE_BRANCH):
