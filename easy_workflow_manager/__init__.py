@@ -285,9 +285,12 @@ def get_tag_message(tag=''):
 def get_repo_info_dict():
     """Return a dict of info about the repo"""
     data = {}
+    repo_path = get_local_repo_path()
+    if not repo_path:
+        return data
     data['branch'] = get_branch_name()
     data['branch_tracking'] = get_tracking_branch()
-    data['path'] = get_local_repo_path()
+    data['path'] = repo_path
     data['url'] = get_origin_url()
     data['last_tag'] = get_last_tag()
     data['unpushed'] = get_unpushed_commits()
@@ -300,6 +303,8 @@ def get_repo_info_dict():
 def get_repo_info_string():
     """Build up a string of info from get_repo_info_dict and return it"""
     info = get_repo_info_dict()
+    if not info:
+        return ''
     s = StringIO()
     s.write('{} .::. {} .::. {}'.format(
         info['path'], info['url'], info['branch']
