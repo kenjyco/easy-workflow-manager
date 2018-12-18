@@ -473,17 +473,24 @@ def prompt_for_new_branch_name(name=''):
 
 
 def new_branch(name, source=SOURCE_BRANCH):
-    """Create a new branch from remote source branch"""
+    """Create a new branch from remote source branch
+
+    - name: name of new branch
+    - source: name of source branch (default SOURCE_BRANCH)
+    """
     print('\n$ git fetch --all --prune')
     bh.run_or_die('git fetch --all --prune')
     print('\n$ git stash')
     bh.run_or_die('git stash')
     cmd = 'git checkout -b {} origin/{} --no-track'.format(name, source)
     print('\n$ {}'.format(cmd))
-    bh.run(cmd)
-    cmd = 'git push -u origin {}'.format(name)
-    print('\n$ {}'.format(cmd))
-    bh.run(cmd)
+    ret_code = bh.run(cmd)
+    if ret_code == 0:
+        cmd = 'git push -u origin {}'.format(name)
+        print('\n$ {}'.format(cmd))
+        bh.run(cmd)
+
+
 
 
 def get_clean_local_branch(source=SOURCE_BRANCH):
