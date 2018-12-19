@@ -493,6 +493,8 @@ def new_branch(name, source=SOURCE_BRANCH):
 
     - name: name of new branch
     - source: name of source branch (default SOURCE_BRANCH)
+
+    Return True if branch creation and push to origin were successful
     """
     print('\n$ git fetch --all --prune')
     bh.run_or_die('git fetch --all --prune')
@@ -504,26 +506,28 @@ def new_branch(name, source=SOURCE_BRANCH):
     if ret_code == 0:
         cmd = 'git push -u origin {}'.format(name)
         print('\n$ {}'.format(cmd))
-        bh.run(cmd)
+        return bh.run(cmd)
 
 
-def branch_from(name='', from_branch=''):
+def branch_from(branch='', name=''):
     """Create a new branch from specified branch on origin
 
-    - name: name of new branch
-    - from_branch: remote branch name to make the new branch from
+    - branch: remote branch name to make the new branch from
+    - name: name of new branch to create
+
+    Return True if branch creation and push to origin were successful
     """
+    remote_branches = get_remote_branches(all_branches=True)
+    if not branch or branch not in remote_branches:
+        selected = select_branches_with_times(all_branches=True, one=True)
+        if selected:
+            branch = selected['branch']
+        else:
+            return
+
     name = prompt_for_new_branch_name(name)
     if name:
-        remote_branches = get_remote_branches(all_branches=True)
-        if not from_branch or from_branch not in remote_branches:
-            selected = select_branches_with_times(all_branches=True)
-            if selected:
-                from_branch = selected[0]['branch']
-            else:
-                from_branch = ''
-        if from_branch:
-            new_branch(name, from_branch)
+        return new_branch(name, branch)
 
 
 def get_clean_local_branch(source=SOURCE_BRANCH):
