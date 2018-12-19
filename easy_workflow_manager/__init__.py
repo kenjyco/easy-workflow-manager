@@ -129,9 +129,14 @@ def get_empty_qa():
     return set(QA_BRANCHES) - non_empty
 
 
-def get_local_branches():
-    """Return list of local branch names (via git branch)"""
-    output = bh.run_output('git branch | cut -c 3-')
+def get_local_branches(grep=''):
+    """Return list of local branch names (via git branch)
+
+    - grep: grep pattern to filter branches by (case-insensitive)
+    """
+    output = bh.run_output('git branch | cut -c 3- | grep -iE {}'.format(repr(grep)))
+    if not output:
+        return []
     branches = re.split('\r?\n', output)
     return branches
 
