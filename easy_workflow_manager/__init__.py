@@ -809,6 +809,16 @@ def show_remote_branches(grep='', all_branches=False):
         print('\n'.join([make_string(branch) for branch in branches]))
 
 
+def show_local_branches(grep=''):
+    """Show the local branches; results are alphabetized
+
+    - grep: grep pattern to filter branches by (case-insensitive)
+    """
+    branches = get_local_branches(grep=grep)
+    for branch in branches:
+        print('- {}'.format(branch))
+
+
 def show_qa(qa='', all_qa=False):
     """Show what is on a specific QA branch
 
