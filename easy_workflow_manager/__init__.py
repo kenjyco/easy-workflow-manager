@@ -50,17 +50,19 @@ def get_remote_branches(grep='', all_branches=False):
     return branches
 
 
-def get_remote_branches_with_times(grep='', all_branches=False):
+def get_remote_branches_with_times(grep='', all_branches=False, fetch=True):
     """Return list of dicts with remote branch names and last update time
 
     - grep: grep pattern to filter branches by (case-insensitive)
     - all_branches: if True, don't filter out non-selectable branches or branches
       prefixed by a qa branch
+    - fetch: if True, do a `git fetch` before calling get_remote_branches
 
     Results are ordered by most recent commit
     """
     results = []
-    bh.run('git fetch --all --prune >/dev/null 2>&1')
+    if fetch:
+        bh.run('git fetch --all --prune >/dev/null 2>&1')
     for branch in get_remote_branches(grep, all_branches=all_branches):
         if not branch:
             continue
@@ -95,7 +97,7 @@ def get_qa_env_branches(qa='', display=False, all_qa=False):
     bh.run('git fetch --all --prune >/dev/null 2>&1')
     for qa_name in qa_branches:
         results = []
-        for branch in get_remote_branches_with_times(grep='^{}--'.format(qa_name), all_branches=True):
+        for branch in get_remote_branches_with_times(grep='^{}--'.format(qa_name), all_branches=True, fetch=False):
             _qa, _, *env_branches = branch['branch'].split('--')
             branch['contains'] = env_branches
             results.append(branch)
