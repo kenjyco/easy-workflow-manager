@@ -60,7 +60,7 @@ def get_remote_branches_with_times(grep='', all_branches=False):
     Results are ordered by most recent commit
     """
     results = []
-    bh.run('git fetch --all --prune &>/dev/null')
+    bh.run('git fetch --all --prune >/dev/null 2>&1')
     for branch in get_remote_branches(grep, all_branches=all_branches):
         if not branch:
             continue
@@ -92,6 +92,7 @@ def get_qa_env_branches(qa='', display=False, all_qa=False):
         qa_branches = QA_BRANCHES
 
     full_results = []
+    bh.run('git fetch --all --prune >/dev/null 2>&1')
     for qa_name in qa_branches:
         results = []
         for branch in get_remote_branches_with_times(grep='^{}--'.format(qa_name), all_branches=True):
@@ -135,7 +136,7 @@ def get_local_branches():
 
 def get_merged_remote_branches():
     """Return a list of branches on origin that have been merged into SOURCE_BRANCH"""
-    bh.run('git fetch --all --prune &>/dev/null')
+    bh.run('git fetch --all --prune >/dev/null 2>&1')
     cmd = 'git branch -r --merged origin/{} | grep -v origin/{} | cut -c 10-'.format(
         SOURCE_BRANCH, SOURCE_BRANCH
     )
