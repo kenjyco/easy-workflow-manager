@@ -377,40 +377,53 @@ def select_qa_with_times(multi=False):
     """
     if len(QA_BRANCHES) == 1:
         return QA_BRANCHES[0]
+    one = not multi
     grep = '(' + '|'.join(['^{}$'.format(qa) for qa in QA_BRANCHES]) + ')'
-    selected = select_branches_with_times(grep=grep, all_branches=True)
-    if selected:
-        if not multi:
-            return selected[0]
-        return selected
+    return select_branches_with_times(grep=grep, all_branches=True, one=one)
 
 
-def select_branches(grep='', all_branches=False):
+def select_branches(grep='', all_branches=False, one=False):
     """Select remote branch(es); return a list of strings
 
     - grep: grep pattern to filter branches by (case-insensitive)
     - all_branches: if True, don't filter out non-selectable branches or branches
       prefixed by a qa branch
+    - one: if True, only select one branch
     """
-    return ih.make_selections(
+    prompt = 'Select remote branch(es)'
+    if one:
+        prompt = 'Select remote branch'
+    selected =  ih.make_selections(
         sorted(get_remote_branches(grep, all_branches=all_branches)),
-        prompt='Select remote branch(es)'
+        prompt=prompt
     )
+    if selected:
+        if one:
+            return selected[0]
+        return selected
 
 
-def select_branches_with_times(grep='', all_branches=False):
+def select_branches_with_times(grep='', all_branches=False, one=False):
     """Select remote branch(es); return a list of dicts
 
     - grep: grep pattern to filter branches by (case-insensitive)
     - all_branches: if True, don't filter out non-selectable branches or branches
       prefixed by a qa branch
+    - one: if True, only select one branch
     """
-    return ih.make_selections(
+    prompt = 'Select remote branch(es)'
+    if one:
+        prompt = 'Select remote branch'
+    selected = ih.make_selections(
         get_remote_branches_with_times(grep, all_branches=all_branches),
         item_format='{branch} ({time})',
         wrap=False,
-        prompt='Select remote branch(es)'
+        prompt=prompt
     )
+    if selected:
+        if one:
+            return selected[0]
+        return selected
 
 
 def select_commit_to_tag(n=10):
