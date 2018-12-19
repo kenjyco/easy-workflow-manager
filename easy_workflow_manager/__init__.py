@@ -334,8 +334,13 @@ def get_repo_info_string():
         for commit in info['unpushed']:
             s.write('\n    - {}'.format(commit))
     if info['commits_since_last_tag']:
-        s.write('\n\n- commits since last tag:')
-        for commit in info['commits_since_last_tag']:
+        s.write('\n\n- commits since last tag')
+        num_commits = len(info['commits_since_last_tag'])
+        if num_commits > 10:
+            s.write(' ({} total, showing last 10):'.format(num_commits))
+        else:
+            s.write(':')
+        for commit in info['commits_since_last_tag'][:10]:
             s.write('\n    - {}'.format(commit))
     return s.getvalue()
 
