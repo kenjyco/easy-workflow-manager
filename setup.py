@@ -6,14 +6,14 @@ with open('README.rst', 'r') as fp:
 
 setup(
     name='easy-workflow-manager',
-    version='0.0.8',
+    version='0.0.9',
     description='Tools to support a straightforward branch/qa/merge/release process',
     long_description=long_description,
     author='Ken',
     author_email='kenjyco@gmail.com',
     license='MIT',
     url='https://github.com/kenjyco/easy-workflow-manager',
-    download_url='https://github.com/kenjyco/easy-workflow-manager/tarball/v0.0.8',
+    download_url='https://github.com/kenjyco/easy-workflow-manager/tarball/v0.0.9',
     packages=find_packages(),
     install_requires=[
         'input-helper',
