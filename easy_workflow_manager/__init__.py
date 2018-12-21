@@ -6,6 +6,7 @@ import fs_helper as fh
 import bg_helper as bh
 import dt_helper as dh
 from io import StringIO
+from os.path import basename
 from pprint import pprint
 
 
@@ -183,6 +184,11 @@ def get_tracking_branch():
 def get_local_repo_path():
     """Return path to local repository"""
     return fh.repopath()
+
+
+def get_local_repo_name():
+    """Return name of local repository"""
+    return basename(fh.repopath())
 
 
 def get_origin_url():
