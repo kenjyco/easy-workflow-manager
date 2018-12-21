@@ -12,19 +12,38 @@ from pprint import pprint
 
 logger = fh.get_logger(__name__)
 get_setting = sh.settings_getter(__name__)
-QA_BRANCHES = get_setting('QA_BRANCHES')
-IGNORE_BRANCHES = get_setting('IGNORE_BRANCHES')
-LOCAL_BRANCH = get_setting('LOCAL_BRANCH')
-SOURCE_BRANCH = get_setting('SOURCE_BRANCH')
-
-QA_BRANCHES = [QA_BRANCHES] if type(QA_BRANCHES) == str else QA_BRANCHES
-IGNORE_BRANCHES = [IGNORE_BRANCHES] if type(IGNORE_BRANCHES) == str else IGNORE_BRANCHES
-RX_QA_PREFIX = re.compile('^(' + '|'.join(QA_BRANCHES) + ').*')
 RX_NON_TAG = re.compile(r'.*-\d+-g[a-f0-9]+$')
 RX_CONFIG_URL = re.compile('^url\s*=\s*(\S+)$')
-NON_SELECTABLE_BRANCHES = set(QA_BRANCHES + IGNORE_BRANCHES)
 FUNCS_ALLOWED_TO_FORCE_PUSH = ('deploy_to_qa', 'merge_qa_to_source')
 FUNCS_ALLOWED_TO_FORCE_PUSH_TO_SOURCE = ('merge_qa_to_source', )
+REPO_SETTINGS_CACHE = {}
+
+
+def _get_repo_settings(setting='', repo=''):
+    """Return a particular setting, or all settings for a repo
+
+    - setting: name of a particular setting
+    """
+    repo = get_local_repo_name() if repo == '' else repo
+    if not repo:
+        return
+    if repo not in REPO_SETTINGS_CACHE:
+        REPO_SETTINGS_CACHE[repo] = {}
+        QA_BRANCHES = get_setting('QA_BRANCHES', section=repo)
+        QA_BRANCHES = [QA_BRANCHES] if type(QA_BRANCHES) == str else QA_BRANCHES
+        REPO_SETTINGS_CACHE[repo]['QA_BRANCHES'] = QA_BRANCHES
+        IGNORE_BRANCHES = get_setting('IGNORE_BRANCHES', section=repo)
+        IGNORE_BRANCHES = [IGNORE_BRANCHES] if type(IGNORE_BRANCHES) == str else IGNORE_BRANCHES
+        REPO_SETTINGS_CACHE[repo]['IGNORE_BRANCHES'] = IGNORE_BRANCHES
+        REPO_SETTINGS_CACHE[repo]['LOCAL_BRANCH'] = get_setting('LOCAL_BRANCH', section=repo)
+        REPO_SETTINGS_CACHE[repo]['SOURCE_BRANCH'] = get_setting('SOURCE_BRANCH', section=repo)
+        REPO_SETTINGS_CACHE[repo]['RX_QA_PREFIX'] = re.compile('^(' + '|'.join(QA_BRANCHES) + ').*')
+        REPO_SETTINGS_CACHE[repo]['NON_SELECTABLE_BRANCHES'] = set(QA_BRANCHES + IGNORE_BRANCHES)
+    if setting:
+        result = REPO_SETTINGS_CACHE[repo].get(setting)
+    else:
+        result = REPO_SETTINGS_CACHE[repo].copy()
+    return result
 
 
 def get_remote_branches(grep='', all_branches=False):
@@ -43,6 +62,8 @@ def get_remote_branches(grep='', all_branches=False):
     branches = []
     if not output:
         return branches
+    RX_QA_PREFIX = _get_repo_settings('RX_QA_PREFIX')
+    NON_SELECTABLE_BRANCHES = _get_repo_settings('NON_SELECTABLE_BRANCHES')
     for branch in re.split('\r?\n', output):
         if all_branches:
             branches.append(branch)
@@ -85,6 +106,7 @@ def get_qa_env_branches(qa='', display=False, all_qa=False):
     - display: if True, print the info to the screen
     - all_qa: if True and no qa passed in, return info for all qa envs
     """
+    QA_BRANCHES = _get_repo_settings('QA_BRANCHES')
     if qa:
         if qa not in QA_BRANCHES:
             return
@@ -126,6 +148,7 @@ def get_non_empty_qa():
 
 def get_empty_qa():
     """Return a set of all QA branches with nothing deployed"""
+    QA_BRANCHES = _get_repo_settings('QA_BRANCHES')
     non_empty = get_non_empty_qa()
     return set(QA_BRANCHES) - non_empty
 
@@ -144,6 +167,7 @@ def get_local_branches(grep=''):
 
 def get_merged_remote_branches():
     """Return a list of branches on origin that have been merged into SOURCE_BRANCH"""
+    SOURCE_BRANCH = _get_repo_settings('SOURCE_BRANCH')
     bh.run('git fetch --all --prune >/dev/null 2>&1')
     cmd = 'git branch -r --merged origin/{} | grep -v origin/{} | cut -c 10-'.format(
         SOURCE_BRANCH, SOURCE_BRANCH
@@ -158,6 +182,7 @@ def get_merged_remote_branches():
 
 def get_merged_local_branches():
     """Return a list of local branches that have been merged into SOURCE_BRANCH"""
+    SOURCE_BRANCH = _get_repo_settings('SOURCE_BRANCH')
     cmd = 'git branch --merged {} | cut -c 3- | grep -v "^{}$"'.format(
         SOURCE_BRANCH, SOURCE_BRANCH
     )
@@ -369,7 +394,7 @@ def select_qa(empty_only=False, full_only=False, multi=False):
     elif full_only:
         items = sorted(list(get_non_empty_qa()))
     else:
-        items = sorted(QA_BRANCHES)
+        items = sorted(_get_repo_settings('QA_BRANCHES'))
     if len(items) == 1:
         print('Selected: {}'.format(repr(items[0])))
         return items[0]
@@ -391,6 +416,7 @@ def select_qa_with_times(multi=False):
 
     - multi: if True, allow selecting multiple qa branches
     """
+    QA_BRANCHES = _get_repo_settings('QA_BRANCHES')
     if len(QA_BRANCHES) == 1:
         return QA_BRANCHES[0]
     one = not multi
@@ -447,6 +473,7 @@ def select_commit_to_tag(n=10):
 
     - n: number of recent commits to choose from
     """
+    SOURCE_BRANCH = _get_repo_settings('SOURCE_BRANCH')
     branch = get_branch_name()
     assert branch == SOURCE_BRANCH, (
         'Must be on {} branch to select commit, not {}'.format(SOURCE_BRANCH, branch)
@@ -478,6 +505,9 @@ def prompt_for_new_branch_name(name=''):
 
     Branch name is not allowed to have the name of any QA_BRANCHES as a prefix
     """
+    QA_BRANCHES = _get_repo_settings('QA_BRANCHES')
+    NON_SELECTABLE_BRANCHES = _get_repo_settings('NON_SELECTABLE_BRANCHES')
+    RX_QA_PREFIX = _get_repo_settings('RX_QA_PREFIX')
     remote_branches = get_remote_branches()
     local_branches = get_local_branches()
     while True:
@@ -504,7 +534,7 @@ def prompt_for_new_branch_name(name=''):
     return name.replace(' ', '_')
 
 
-def new_branch(name, source=SOURCE_BRANCH):
+def new_branch(name, source=''):
     """Create a new branch from remote source branch
 
     - name: name of new branch
@@ -512,6 +542,8 @@ def new_branch(name, source=SOURCE_BRANCH):
 
     Return True if branch creation and push to origin were successful
     """
+    if not source:
+        source = _get_repo_settings('SOURCE_BRANCH')
     print('\n$ git fetch --all --prune')
     bh.run_or_die('git fetch --all --prune')
     print('\n$ git stash')
@@ -546,8 +578,11 @@ def branch_from(branch='', name=''):
         return new_branch(name, branch)
 
 
-def get_clean_local_branch(source=SOURCE_BRANCH):
+def get_clean_local_branch(source=''):
     """Create a clean LOCAL_BRANCH from remote source"""
+    if not source:
+        source = _get_repo_settings('SOURCE_BRANCH')
+    LOCAL_BRANCH = _get_repo_settings('LOCAL_BRANCH')
     print('\n$ git fetch --all --prune')
     bh.run_or_die('git fetch --all --prune')
     print('\n$ git stash')
@@ -563,7 +598,7 @@ def get_clean_local_branch(source=SOURCE_BRANCH):
     bh.run_or_die(cmd)
 
 
-def merge_branches_locally(*branches, source=SOURCE_BRANCH):
+def merge_branches_locally(*branches, source=''):
     """Create a clean LOCAL_BRANCH from remote SOURCE_BRANCH and merge in remote branches
 
     If there are any merge conflicts, you will be dropped into a sub-shell where
@@ -571,6 +606,8 @@ def merge_branches_locally(*branches, source=SOURCE_BRANCH):
 
     Return True if merge was successful
     """
+    if not source:
+        source = _get_repo_settings('SOURCE_BRANCH')
     get_clean_local_branch(source=source)
     bad_merges = []
     for branch in branches:
@@ -624,12 +661,15 @@ def force_push_local(qa='', *branches, to_source=False):
             repr(FUNCS_ALLOWED_TO_FORCE_PUSH), repr(caller)
         )
     )
+    SOURCE_BRANCH = _get_repo_settings('SOURCE_BRANCH')
     if to_source:
         assert caller in FUNCS_ALLOWED_TO_FORCE_PUSH_TO_SOURCE, (
             'Only allowed to force push to {} when invoked from {}... not {}'.format(
                 SOURCE_BRANCH, repr(FUNCS_ALLOWED_TO_FORCE_PUSH_TO_SOURCE), repr(caller)
             )
         )
+    QA_BRANCHES = _get_repo_settings('QA_BRANCHES')
+    LOCAL_BRANCH = _get_repo_settings('LOCAL_BRANCH')
     current_branch = get_branch_name()
     if current_branch != LOCAL_BRANCH:
         print('Will not do a force push with branch {}, only {}'.format(
@@ -666,6 +706,7 @@ def deploy_to_qa(qa='', grep=''):
 
     Return qa name if deploy was successful
     """
+    QA_BRANCHES = _get_repo_settings('QA_BRANCHES')
     if qa not in QA_BRANCHES:
         qa = select_qa(empty_only=True)
     if not qa:
@@ -720,6 +761,9 @@ def merge_qa_to_source(qa=''):
 
     Return qa name if merge(s) and delete(s) were successful
     """
+    QA_BRANCHES = _get_repo_settings('QA_BRANCHES')
+    SOURCE_BRANCH = _get_repo_settings('SOURCE_BRANCH')
+    LOCAL_BRANCH = _get_repo_settings('LOCAL_BRANCH')
     if qa not in QA_BRANCHES:
         show_qa(all_qa=True)
         print()
@@ -782,6 +826,8 @@ def update_branch(branch='', pop_stash=False):
         print('\nLocal-only repo, not updating')
         return
     elif tracking:
+        SOURCE_BRANCH = _get_repo_settings('SOURCE_BRANCH')
+        NON_SELECTABLE_BRANCHES = _get_repo_settings('NON_SELECTABLE_BRANCHES')
         print('\n$ git stash')
         stash_output = bh.run_output('git stash')
         print(stash_output)
@@ -789,7 +835,7 @@ def update_branch(branch='', pop_stash=False):
         ret_code = bh.run('git pull --rebase')
         if ret_code != 0:
             return
-        if branch != SOURCE_BRANCH:
+        if branch != SOURCE_BRANCH and branch not in NON_SELECTABLE_BRANCHES:
             cmd = 'git rebase origin/{}'.format(SOURCE_BRANCH)
             print('\n$ {}'.format(cmd))
             ret_code = bh.run(cmd)
@@ -848,6 +894,7 @@ def clear_qa(*qas, all_qa=False):
 
     Return True if deleting branch(es) was successful
     """
+    QA_BRANCHES = _get_repo_settings('QA_BRANCHES')
     if not all_qa:
         valid = set(QA_BRANCHES).intersection(set(qas))
         if valid == set():
@@ -884,6 +931,7 @@ def tag_release():
 
     Return True if tag was successful
     """
+    SOURCE_BRANCH = _get_repo_settings('SOURCE_BRANCH')
     success = update_branch(SOURCE_BRANCH)
     if not success:
         return
