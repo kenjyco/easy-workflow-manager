@@ -38,6 +38,7 @@ setup(
             'ewm-show-qa=easy_workflow_manager.scripts.show_qa:main',
             'ewm-show-branches=easy_workflow_manager.scripts.show_branches:main',
             'ewm-repo-info=easy_workflow_manager.scripts.show_repo_info:main',
+            'ewm-update-branch=easy_workflow_manager.scripts.update_branch:main',
             'ewm-tag-release=easy_workflow_manager.scripts.tag_release:main',
         ],
     },
