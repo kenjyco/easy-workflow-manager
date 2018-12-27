@@ -553,17 +553,13 @@ def new_branch(name, source=''):
     """
     if not source:
         source = _get_repo_settings('SOURCE_BRANCH')
-    print('\n$ git fetch --all --prune')
-    bh.run_or_die('git fetch --all --prune')
-    print('\n$ git stash')
-    bh.run_or_die('git stash')
+    bh.run_or_die('git fetch --all --prune', show=True)
+    bh.run_or_die('git stash', show=True)
     cmd = 'git checkout -b {} origin/{} --no-track'.format(name, source)
-    print('\n$ {}'.format(cmd))
-    ret_code = bh.run(cmd)
+    ret_code = bh.run(cmd, show=True)
     if ret_code == 0:
         cmd = 'git push -u origin {}'.format(name)
-        print('\n$ {}'.format(cmd))
-        return bh.run(cmd)
+        return bh.run(cmd, show=True)
 
 
 def branch_from(branch='', name=''):
@@ -592,19 +588,14 @@ def get_clean_local_branch(source=''):
     if not source:
         source = _get_repo_settings('SOURCE_BRANCH')
     LOCAL_BRANCH = _get_repo_settings('LOCAL_BRANCH')
-    print('\n$ git fetch --all --prune')
-    bh.run_or_die('git fetch --all --prune')
-    print('\n$ git stash')
-    bh.run_or_die('git stash')
+    bh.run_or_die('git fetch --all --prune', show=True)
+    bh.run_or_die('git stash', show=True)
     cmd = 'git checkout {}'.format(source)
-    print('\n$ {}'.format(cmd))
-    bh.run_or_die(cmd)
+    bh.run_or_die(cmd, show=True)
     cmd = 'git branch -D {}'.format(LOCAL_BRANCH)
-    print('\n$ {}'.format(cmd))
-    bh.run(cmd)
+    bh.run(cmd, show=True)
     cmd = 'git checkout -b {} origin/{} --no-track'.format(LOCAL_BRANCH, source)
-    print('\n$ {}'.format(cmd))
-    bh.run_or_die(cmd)
+    bh.run_or_die(cmd, show=True)
 
 
 def merge_branches_locally(*branches, source=''):
@@ -621,20 +612,17 @@ def merge_branches_locally(*branches, source=''):
     bad_merges = []
     for branch in branches:
         cmd = 'git merge origin/{}'.format(branch)
-        print('\n$ {}'.format(cmd))
-        ret_code = bh.run(cmd)
+        ret_code = bh.run(cmd, show=True)
         if ret_code != 0:
             bad_merges.append(branch)
             cmd = 'git merge --abort'
-            print('\n$ {}'.format(cmd))
-            bh.run(cmd)
+            bh.run(cmd, show=True)
 
     if bad_merges:
         print('\n!!!!! The following branch(es) had merge conflicts: {}'.format(repr(bad_merges)))
         for branch in bad_merges:
             cmd = 'git merge origin/{}; git status'.format(branch)
-            print('\n$ {}'.format(cmd))
-            bh.run(cmd)
+            bh.run(cmd, show=True)
             print('\nManually resolve the conflict(s), then "git add ____", then "git commit", then "exit"\n')
             bh.run('sh')
 
@@ -642,8 +630,7 @@ def merge_branches_locally(*branches, source=''):
             if output != '':
                 print('\nConflicts still not resolved, aborting')
                 cmd = 'git merge --abort'
-                print('\n$ {}'.format(cmd))
-                bh.run(cmd)
+                bh.run(cmd, show=True)
                 return
 
     return True
@@ -699,10 +686,8 @@ def force_push_local(qa='', *branches, to_source=False):
     ret_codes = []
     combined_name = qa + '--with--' + '--'.join(branches)
     cmd_part = 'git push -uf origin {}:'.format(LOCAL_BRANCH)
-    print('\n$ {}'.format(cmd_part + qa))
-    ret_codes.append(bh.run(cmd_part + qa))
-    print('\n$ {}'.format(cmd_part + combined_name))
-    ret_codes.append(bh.run(cmd_part + combined_name))
+    ret_codes.append(bh.run(cmd_part + qa, show=True))
+    ret_codes.append(bh.run(cmd_part + combined_name, show=True))
     if all([x == 0 for x in ret_codes]):
         return True
 
@@ -741,8 +726,7 @@ def delete_remote_branches(*branches):
     ret_codes = []
     for branch in sorted(set(branches)):
         cmd = 'git push origin -d {}'.format(branch)
-        print('\n$ {}'.format(cmd))
-        ret_codes.append(bh.run(cmd))
+        ret_codes.append(bh.run(cmd, show=True))
 
     if all([x == 0 for x in ret_codes]):
         return True
@@ -756,8 +740,7 @@ def delete_local_branches(*branches):
     ret_codes = []
     for branch in sorted(set(branches)):
         cmd = 'git branch -D {}'.format(branch)
-        print('\n$ {}'.format(cmd))
-        ret_codes.append(bh.run(cmd))
+        ret_codes.append(bh.run(cmd, show=True))
 
     if all([x == 0 for x in ret_codes]):
         return True
@@ -800,8 +783,7 @@ def merge_qa_to_source(qa=''):
         return
 
     cmd = 'git push -uf origin {}:{}'.format(LOCAL_BRANCH, SOURCE_BRANCH)
-    print('\n$ {}'.format(cmd))
-    ret_code = bh.run(cmd)
+    ret_code = bh.run(cmd, show=True)
     if ret_code != 0:
         print('\nThere was a failure, not going to delete these: {}'.format(repr(delete_after_merge)))
         return
@@ -825,8 +807,7 @@ def update_branch(branch='', pop_stash=False):
             cmd = 'git checkout origin/{}'.format(branch)
         else:
             cmd = 'git checkout {}'.format(branch)
-        print('\n$ {}'.format(cmd))
-        bh.run_or_die(cmd)
+        bh.run_or_die(cmd, show=True)
 
     branch = get_branch_name()
     url = get_origin_url()
@@ -837,25 +818,20 @@ def update_branch(branch='', pop_stash=False):
     elif tracking:
         SOURCE_BRANCH = _get_repo_settings('SOURCE_BRANCH')
         NON_SELECTABLE_BRANCHES = _get_repo_settings('NON_SELECTABLE_BRANCHES')
-        print('\n$ git stash')
-        stash_output = bh.run_output('git stash')
+        stash_output = bh.run_output('git stash', show=True)
         print(stash_output)
-        print('\n$ git pull --rebase')
-        ret_code = bh.run('git pull --rebase')
+        ret_code = bh.run('git pull --rebase', show=True)
         if ret_code != 0:
             return
         if branch != SOURCE_BRANCH and branch not in NON_SELECTABLE_BRANCHES:
             cmd = 'git rebase origin/{}'.format(SOURCE_BRANCH)
-            print('\n$ {}'.format(cmd))
-            ret_code = bh.run(cmd)
+            ret_code = bh.run(cmd, show=True)
             if ret_code != 0:
                 return
         if pop_stash and stash_output != 'No local changes to save':
-            print('\n$ git stash pop')
-            bh.run_output('git stash pop')
+            bh.run_output('git stash pop', show=True)
     else:
-        print('\n$ git fetch')
-        bh.run_output('git fetch')
+        bh.run_output('git fetch', show=True)
 
     return True
 
@@ -966,10 +942,8 @@ def tag_release():
     if not resp.lower().startswith('y'):
         return
 
-    print('\n$ {}'.format(cmd))
-    ret_code = bh.run(cmd)
+    ret_code = bh.run(cmd, show=True)
     if ret_code != 0:
         return
 
-    print('\n$ git push --tags')
-    return bh.run('git push --tags')
+    return bh.run('git push --tags', show=True)
