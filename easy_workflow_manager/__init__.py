@@ -336,15 +336,15 @@ def get_repo_info_dict():
     repo_path = get_local_repo_path()
     if not repo_path:
         return data
-    data['branch'] = get_branch_name()
-    data['branch_tracking'] = get_tracking_branch()
     data['path'] = repo_path
     data['url'] = get_origin_url()
+    data['branch'] = get_branch_name()
+    data['branch_tracking'] = get_tracking_branch()
     data['last_tag'] = get_last_tag()
+    data['status'] = get_status()
+    data['stashes'] = get_stashlist()
     data['unpushed'] = get_unpushed_commits()
     data['commits_since_last_tag'] = get_commits_since_last_tag()
-    data['stashes'] = get_stashlist()
-    data['status'] = get_status()
     return data
 
 
