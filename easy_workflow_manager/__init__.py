@@ -243,6 +243,16 @@ def get_unpushed_commits():
     return commits
 
 
+def get_untracked_files():
+    """Return a list of any local files that are not tracked in the git repo"""
+    cmd = 'git ls-files -o --exclude-standard'
+    output = bh.run_output(cmd)
+    files = []
+    if output:
+        files = re.split('\r?\n', output)
+    return files
+
+
 def get_first_commit_id():
     """Get the first commit id for the repo"""
     output = bh.run_output('git rev-list --max-parents=0 HEAD')
