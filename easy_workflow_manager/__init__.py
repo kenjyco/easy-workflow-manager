@@ -421,13 +421,11 @@ def select_qa(empty_only=False, full_only=False, multi=False):
         print('No items to select')
         return
     prompt = 'Select QA branch'
+    one = not multi
     if multi:
         prompt = 'Select QA branches'
-    selected = ih.make_selections(items, prompt=prompt)
-    if selected:
-        if not multi:
-            return selected[0]
-        return selected
+    selected = ih.make_selections(items, prompt=prompt, one=one)
+    return selected
 
 
 def select_qa_with_times(multi=False):
@@ -456,12 +454,10 @@ def select_branches(grep='', all_branches=False, one=False):
         prompt = 'Select remote branch'
     selected =  ih.make_selections(
         sorted(get_remote_branches(grep, all_branches=all_branches)),
-        prompt=prompt
+        prompt=prompt,
+        one=one
     )
-    if selected:
-        if one:
-            return selected[0]
-        return selected
+    return selected
 
 
 def select_branches_with_times(grep='', all_branches=False, one=False):
@@ -479,12 +475,10 @@ def select_branches_with_times(grep='', all_branches=False, one=False):
         get_remote_branches_with_times(grep, all_branches=all_branches),
         item_format='{branch} ({time})',
         wrap=False,
-        prompt=prompt
+        prompt=prompt,
+        one=one
     )
-    if selected:
-        if one:
-            return selected[0]
-        return selected
+    return selected
 
 
 def select_commit_to_tag(n=10):
