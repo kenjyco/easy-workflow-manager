@@ -196,7 +196,9 @@ def get_merged_local_branches():
 
 def get_branch_name():
     """Return current branch name"""
-    return bh.run_output('git rev-parse --abbrev-ref HEAD')
+    output = bh.run_output('git rev-parse --abbrev-ref HEAD')
+    output = 'HEAD' if output.startswith('fatal:') else output
+    return output
 
 
 def get_tracking_branch():
@@ -228,6 +230,7 @@ def get_origin_url():
     match = RX_CONFIG_URL.match(output)
     if match:
         return match.group(1)
+    return ''
 
 
 def get_unpushed_commits():
@@ -242,12 +245,16 @@ def get_unpushed_commits():
 
 def get_first_commit_id():
     """Get the first commit id for the repo"""
-    return bh.run_output('git rev-list --max-parents=0 HEAD')
+    output = bh.run_output('git rev-list --max-parents=0 HEAD')
+    output = '' if output.startswith('fatal:') else output
+    return output
 
 
 def get_last_commit_id():
     """Get the last commit id for the repo"""
-    return bh.run_output('git log --no-merges  --format="%h" -1')
+    output = bh.run_output('git log --no-merges  --format="%h" -1')
+    output = '' if output.startswith('fatal:') else output
+    return output
 
 
 def get_commits_since_last_tag(until=''):
@@ -261,6 +268,8 @@ def get_commits_since_last_tag(until=''):
     commits = []
     if not tag:
         tag = get_first_commit_id()
+        if not tag:
+            return commits
     if not until:
         until = get_last_commit_id()
     cmd = 'git log --find-renames --no-merges --oneline {}..{}'.format(tag, until)
