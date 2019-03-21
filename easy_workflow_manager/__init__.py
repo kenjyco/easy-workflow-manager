@@ -696,11 +696,12 @@ def force_push_local(qa='', *branches, to_source=False):
         return True
 
 
-def deploy_to_qa(qa='', grep=''):
+def deploy_to_qa(qa='', grep='', branches=''):
     """Select remote branch(es) to deploy to specified QA branch
 
     - qa: name of qa branch that will receive this deploy
     - grep: grep pattern to filter branches by (case-insensitive)
+    - branches: string of branch names separated by any of , ; | (or list)
 
     Return qa name if deploy was successful
     """
@@ -710,11 +711,26 @@ def deploy_to_qa(qa='', grep=''):
     if not qa:
         return
 
-    branches = select_branches_with_times(grep=grep)
+    if branches:
+        _branches = []
+        _type = type(branches)
+        if _type in (list, tuple):
+            for br in branches:
+                _branches.extend(ih.string_to_list(br))
+        elif _type == str:
+            _branches.extend(ih.string_to_list(branches))
+        remote_branches = get_remote_branches()
+        valid = set(_branches).intersection(set(remote_branches))
+        if len(valid) != len(_branches):
+            branches = None
+        else:
+            branch_names = _branches[:]
+    if not branches:
+        branches = select_branches_with_times(grep=grep)
+        branch_names = [b['branch'] for b in branches]
     if not branches:
         return
 
-    branch_names = [b['branch'] for b in branches]
     success = merge_branches_locally(*branch_names)
     if success:
         success2 = force_push_local(qa, *branch_names)
