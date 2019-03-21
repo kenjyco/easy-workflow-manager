@@ -890,12 +890,14 @@ def show_qa(qa='', all_qa=False):
     get_qa_env_branches(qa, display=True, all_qa=all_qa)
 
 
-def clear_qa(*qas, all_qa=False):
+def clear_qa(*qas, all_qa=False, force=False):
     """Clear whatever is on selected QA branches
 
     - qas: names of qa branches that may have things pushed to them
         - if no qas passed in, you will be prompted to select multiple
     - all_qa: if True and no qa passed in, clear all qa branches
+    - force: if True, delete the specified qa branches without prompting
+      for confirmation
 
     Return True if deleting branch(es) was successful
     """
@@ -922,11 +924,12 @@ def clear_qa(*qas, all_qa=False):
 
     if not branches:
         return
-    print('\n', branches, '\n')
-    resp = ih.user_input('Does this look correct? (y/n)')
-    if not resp.lower().startswith('y'):
-        print('\nNot going to do anything')
-        return
+    if not force:
+        print('\n', branches, '\n')
+        resp = ih.user_input('Does this look correct? (y/n)')
+        if not resp.lower().startswith('y'):
+            print('\nNot going to do anything')
+            return
 
     return delete_remote_branches(*branches)
 
