@@ -22,7 +22,7 @@ def make_file(fname='some-file.txt', initial_text='some stuff'):
 
 def append_to_file(fname='some-file.txt', text='more stuff'):
     """Append to a file using 'echo' and output redirection"""
-    cmd = 'echo {} >> {}'.format(repr(initial_text), repr(fname))
+    cmd = 'echo {} >> {}'.format(repr(text), repr(fname))
     return bh.run(cmd)
 
 
