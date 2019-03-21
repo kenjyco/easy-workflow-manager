@@ -1,4 +1,7 @@
-__all__ = ['make_file', 'append_to_file', 'change_file_line', 'init_clone_cd_repo']
+__all__ = [
+    'make_file', 'append_to_file', 'change_file_line', 'init_clone_cd_repo',
+    'add_commit_push', 'checkout_branch'
+]
 
 
 import os
@@ -54,3 +57,19 @@ def init_clone_cd_repo(remote_path, local_path):
                 if ret_code == 0:
                     return True
     raise Exception('Creating test remote/local repo failed')
+
+
+def checkout_branch(branch):
+    """Check out an existing branch"""
+    return bh.run('git checkout {}'.format(branch))
+
+
+def add_commit_push(show=True):
+    """Add modified files, commit, and push"""
+    branch = ewm.get_branch_name()
+    files = [x.split(' ', 1)[-1] for x in ewm.get_status()]
+    message = 'Changed ' + ', '.join(files) + ' in branch ' + branch
+    return bh.run(
+        'git add .; git commit -m "{}"; git push'.format(message),
+        show=show
+    )
