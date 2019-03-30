@@ -1,10 +1,11 @@
 __all__ = [
     'make_file', 'append_to_file', 'change_file_line', 'init_clone_cd_repo',
-    'add_commit_push', 'checkout_branch'
+    'add_commit_push', 'checkout_branch', 'deploy_merge_tag'
 ]
 
 
 import os
+import random
 import bg_helper as bh
 import easy_workflow_manager as ewm
 
@@ -12,6 +13,7 @@ import easy_workflow_manager as ewm
 os.environ['QA_BRANCHES'] = 'qa1, qa2, qa3'
 os.environ['IGNORE_BRANCHES'] = 'master'
 os.environ['SOURCE_BRANCH'] = 'master'
+os.environ['TAG_BRANCH'] = 'master'
 
 
 def make_file(fname='some-file.txt', initial_text='some stuff'):
@@ -73,3 +75,22 @@ def add_commit_push(show=True):
         'git add .; git commit -m "{}"; git push'.format(message),
         show=show
     )
+
+def deploy_merge_tag(branch):
+    """Deploy a branch to an open qa environment, merge back to source, then tag
+
+    Return True if ewm_tag_release was successful
+    """
+    qa = random.choice(list(ewm.get_empty_qa()))
+    orig_remote_branches = ewm.get_remote_branches()
+    assert branch in orig_remote_branches
+    deployed_branch = ewm.deploy_to_qa(qa=qa, branches=branch)
+    assert qa == deployed_branch
+    qa_env_branches = ewm.get_qa_env_branches(qa=qa, display=True)
+    merged_branch = ewm.merge_qa_to_source(qa=qa, auto=True)
+    remote_branches = ewm.get_remote_branches()
+    assert branch not in remote_branches
+    tag_success = ewm.tag_release(auto=True)
+    tag_message = ewm.get_tag_message()
+    assert branch in tag_message
+    return tag_success
