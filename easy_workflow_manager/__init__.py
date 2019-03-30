@@ -37,6 +37,7 @@ def _get_repo_settings(setting='', repo=''):
         REPO_SETTINGS_CACHE[repo]['IGNORE_BRANCHES'] = IGNORE_BRANCHES
         REPO_SETTINGS_CACHE[repo]['LOCAL_BRANCH'] = get_setting('LOCAL_BRANCH', section=repo)
         REPO_SETTINGS_CACHE[repo]['SOURCE_BRANCH'] = get_setting('SOURCE_BRANCH', section=repo)
+        REPO_SETTINGS_CACHE[repo]['TAG_BRANCH'] = get_setting('TAG_BRANCH', section=repo)
         REPO_SETTINGS_CACHE[repo]['RX_QA_PREFIX'] = re.compile('^(' + '|'.join(QA_BRANCHES) + ').*')
         REPO_SETTINGS_CACHE[repo]['NON_SELECTABLE_BRANCHES'] = set(QA_BRANCHES + IGNORE_BRANCHES)
     if setting:
@@ -943,8 +944,8 @@ def tag_release(auto=False):
 
     Return True if tag was successful
     """
-    SOURCE_BRANCH = _get_repo_settings('SOURCE_BRANCH')
-    success = update_branch(SOURCE_BRANCH)
+    TAG_BRANCH = _get_repo_settings('TAG_BRANCH')
+    success = update_branch(TAG_BRANCH)
     if not success:
         return
     tag = dh.local_now_string('%Y-%m%d-%H%M%S')
