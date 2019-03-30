@@ -766,10 +766,11 @@ def delete_local_branches(*branches):
         return True
 
 
-def merge_qa_to_source(qa=''):
+def merge_qa_to_source(qa='', auto=False):
     """Merge the QA-verified code to SOURCE_BRANCH and delete merged branch(es)
 
     - qa: name of qa branch to merge to source
+    - auto: if True, don't ask if everything looks ok
 
     Return qa name if merge(s) and delete(s) were successful
     """
@@ -788,10 +789,11 @@ def merge_qa_to_source(qa=''):
         return
 
     print()
-    resp = ih.user_input('Does this look correct? (y/n)')
-    if not resp.lower().startswith('y'):
-        print('\nNot going to do anything')
-        return
+    if not auto:
+        resp = ih.user_input('Does this look correct? (y/n)')
+        if not resp.lower().startswith('y'):
+            print('\nNot going to do anything')
+            return
 
     most_recent = env_branches[0]
     delete_after_merge = most_recent['contains'][:]
@@ -934,8 +936,10 @@ def clear_qa(*qas, all_qa=False, force=False):
     return delete_remote_branches(*branches)
 
 
-def tag_release():
-    """Select a recent remote commit on SOURCE_BRANCH to tag
+def tag_release(auto=False):
+    """Select a recent remote commit on TAG_BRANCH to tag
+
+    - auto: if True, create tag on last commit and generate message
 
     Return True if tag was successful
     """
@@ -943,27 +947,35 @@ def tag_release():
     success = update_branch(SOURCE_BRANCH)
     if not success:
         return
-    print('\nRecent commits')
-    commit_id = select_commit_to_tag()
-    if not commit_id:
-        return
     tag = dh.local_now_string('%Y-%m%d-%H%M%S')
-    commits = get_commits_since_last_tag(until=commit_id)
-    notes_file = '/tmp/{}.txt'.format(tag)
-    summary = ih.user_input('One-line summary for tag')
-    if not summary:
+    if not auto:
+        print('\nRecent commits')
+        commit_id = select_commit_to_tag()
+        if not commit_id:
+            return
+        summary = ih.user_input('One-line summary for tag')
+        if not summary:
+            summary = tag
+    else:
+        commit_id = get_last_commit_id()
         summary = tag
+    commits = get_commits_since_last_tag(until=commit_id)
+    if not commits:
+        return
+    notes_file = '/tmp/{}.txt'.format(tag)
     with open(notes_file, 'w') as fp:
         fp.write('{}\n\n'.format(summary))
         fp.write('\n'.join(commits) + '\n')
-    bh.run('vim {}'.format(notes_file))
+
     cmd = 'git tag -a {} {} -F {}'.format(
         tag, commit_id, repr(notes_file)
     )
-    print('Tag command would be -> {}'.format(cmd))
-    resp = ih.user_input('Continue? (y/n)')
-    if not resp.lower().startswith('y'):
-        return
+    if not auto:
+        bh.run('vim {}'.format(notes_file))
+        print('Tag command would be -> {}'.format(cmd))
+        resp = ih.user_input('Continue? (y/n)')
+        if not resp.lower().startswith('y'):
+            return
 
     ret_code = bh.run(cmd, show=True)
     if ret_code != 0:
