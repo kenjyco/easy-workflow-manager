@@ -51,6 +51,16 @@ class TestNewRepo(object):
         assert 'otherbranch' in merged_remote_branches
         assert 'mybranch2' not in merged_remote_branches
 
+    def test_tagging(self):
+        checkout_branch('otherbranch')
+        change_file_line()
+        ewm.show_repo_info()
+        add_commit_push()
+        ewm.show_repo_info()
+        deploy_merge_tag('otherbranch')
+        ewm.show_repo_info()
+        assert ewm.get_branch_name() == 'master'
+
 
 class TestMoreStuff(object):
     def test_remote_branches(self):
