@@ -15,6 +15,8 @@ setup(
     url='https://github.com/kenjyco/easy-workflow-manager',
     download_url='https://github.com/kenjyco/easy-workflow-manager/tarball/v0.0.11',
     packages=find_packages(),
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest'],
     install_requires=[
         'input-helper',
         'settings-helper',
