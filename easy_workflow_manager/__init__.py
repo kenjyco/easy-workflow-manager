@@ -376,7 +376,9 @@ def get_repo_info_dict():
     data['path'] = repo_path
     data['url'] = get_origin_url()
     data['branch'] = get_branch_name()
+    data['branch_date'] = get_branch_date(data['branch'])
     data['branch_tracking'] = get_tracking_branch()
+    data['branch_tracking_date'] = get_branch_date(data['branch_tracking'])
     data['last_tag'] = get_last_tag()
     data['status'] = get_status()
     data['stashes'] = get_stashlist()
@@ -396,6 +398,8 @@ def get_repo_info_string():
     ))
     if info['branch_tracking']:
         s.write('\n- tracking: {}'.format(info['branch_tracking']))
+        s.write('\n    - updated: {}'.format(info['branch_tracking_date']))
+        s.write('\n    - local: {}'.format(info['branch_date']))
     if info['last_tag']:
         s.write('\n- last tag: {}'.format(info['last_tag']))
     if info['status']:
