@@ -672,7 +672,7 @@ def merge_branches_locally(*branches, source=''):
 
 
 def force_push_local(qa='', *branches, to_source=False):
-    """Da a git push -f of LOCAL_BRANCH to specified qa branch or SOURCE_BRANCH
+    """Do a git push -f of LOCAL_BRANCH to specified qa branch or SOURCE_BRANCH
 
     - qa: name of qa branch to push to
     - branches: list of remote branch names that were merged into LOCAL_BRANCH
