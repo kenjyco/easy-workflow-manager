@@ -76,3 +76,7 @@ Usage: ewm-tag-release [OPTIONS]
 Options:
   --help  Show this message and exit.
 ```
+
+## Resources
+
+- <https://git-scm.com/book/en/v2>
