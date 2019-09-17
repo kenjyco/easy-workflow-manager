@@ -89,8 +89,7 @@ def get_remote_branches_with_times(grep='', all_branches=False, fetch=True):
     for branch in get_remote_branches(grep, all_branches=all_branches):
         if not branch:
             continue
-        cmd = 'git show --format="%ci %cr" origin/{} | head -n 1'.format(branch)
-        time_data = bh.run_output(cmd)
+        time_data = get_branch_date('origin/{}'.format(branch))
         results.append({
             'branch': branch,
             'time': time_data
@@ -200,6 +199,15 @@ def get_branch_name():
     output = bh.run_output('git rev-parse --abbrev-ref HEAD')
     output = 'HEAD' if output.startswith('fatal:') else output
     return output
+
+
+def get_branch_date(branch):
+    """Return datetime (and relative age) of branch
+
+    Prefix branch name with 'origin/' to get date info of remote branch
+    """
+    cmd = 'git show --format="%ci %cr" {} | head -n 1'.format(branch)
+    return bh.run_output(cmd)
 
 
 def get_tracking_branch():
