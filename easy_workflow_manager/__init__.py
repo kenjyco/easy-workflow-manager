@@ -165,6 +165,24 @@ def get_local_branches(grep=''):
     return branches
 
 
+def get_local_branches_with_times(grep=''):
+    """Return list of dicts with local branch names and last update time
+
+    - grep: grep pattern to filter branches by (case-insensitive)
+    """
+    results = []
+    for branch in get_local_branches(grep):
+        if not branch:
+            continue
+        time_data = get_branch_date(branch)
+        results.append({
+            'branch': branch,
+            'time': time_data
+        })
+    ih.sort_by_keys(results, 'time', reverse=True)
+    return results
+
+
 def get_merged_remote_branches():
     """Return a list of branches on origin that have been merged into SOURCE_BRANCH"""
     SOURCE_BRANCH = _get_repo_settings('SOURCE_BRANCH')
@@ -887,9 +905,10 @@ def show_local_branches(grep=''):
 
     - grep: grep pattern to filter branches by (case-insensitive)
     """
-    branches = get_local_branches(grep=grep)
-    for branch in branches:
-        print('- {}'.format(branch))
+    branches = get_local_branches_with_times(grep=grep)
+    if branches:
+        make_string = ih.get_string_maker(item_format='- {branch} .::. {time}')
+        print('\n'.join([make_string(branch) for branch in branches]))
 
 
 def show_qa(qa='', all_qa=False):
