@@ -21,6 +21,12 @@ def main(grep, all_branches, local):
     if local:
         print('\nLocal:')
         ewm.show_local_branches(grep=grep)
+        merged = ewm.get_merged_local_branches()
+        if merged:
+            SOURCE_BRANCH = ewm._get_repo_settings('SOURCE_BRANCH')
+            print('\nLocal merged to origin/{}:'.format(SOURCE_BRANCH))
+            for branch in merged:
+                print('- {}'.format(branch))
 
 
 if __name__ == '__main__':
