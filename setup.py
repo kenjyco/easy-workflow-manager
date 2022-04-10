@@ -9,14 +9,14 @@ with open('requirements.txt', 'r') as fp:
 
 setup(
     name='easy-workflow-manager',
-    version='0.0.12',
+    version='0.0.13',
     description='Tools to support a straightforward branch/qa/merge/release process',
     long_description=long_description,
     author='Ken',
     author_email='kenjyco@gmail.com',
     license='MIT',
     url='https://github.com/kenjyco/easy-workflow-manager',
-    download_url='https://github.com/kenjyco/easy-workflow-manager/tarball/v0.0.12',
+    download_url='https://github.com/kenjyco/easy-workflow-manager/tarball/v0.0.13',
     packages=find_packages(),
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
