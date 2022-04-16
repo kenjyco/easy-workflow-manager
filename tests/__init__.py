@@ -52,6 +52,10 @@ def init_clone_cd_repo(remote_path, local_path):
             ret_code = make_file()
             if ret_code == 0:
                 ret_code = bh.run(
+                    'git config user.name "Someone"; '
+                    'git config user.email "someone@email.com"'
+                )
+                ret_code += bh.run(
                     'git add .; '
                     'git commit -m "Initial commit"; '
                     'git push -u origin master'
